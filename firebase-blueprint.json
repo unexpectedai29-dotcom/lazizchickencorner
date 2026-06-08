@@ -1,0 +1,203 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "A customer pickup order for food",
+      "type": "object",
+      "properties": {
+        "customerName": {
+          "type": "string",
+          "description": "Customer standard name"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Customer phone number"
+        },
+        "items": {
+          "type": "array",
+          "description": "List of ordered items with quantity, name, and unit price"
+        },
+        "totalPrice": {
+          "type": "number",
+          "description": "Total checkout price in INR"
+        },
+        "orderStatus": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "accepted",
+            "ready",
+            "rejected",
+            "completed"
+          ],
+          "description": "Current status of order pickup processing"
+        },
+        "pickupTime": {
+          "type": "string",
+          "description": "Requested pickup time"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional customer instructions"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of order creation"
+        }
+      },
+      "required": [
+        "customerName",
+        "phone",
+        "items",
+        "totalPrice",
+        "orderStatus",
+        "pickupTime",
+        "createdAt"
+      ]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Platform administrator credential information",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Email address of the authorized admin"
+        }
+      },
+      "required": [
+        "email"
+      ]
+    },
+    "MenuItem": {
+      "title": "MenuItem",
+      "description": "A rich menu item served in the restaurant",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Dish title name"
+        },
+        "price": {
+          "type": "number",
+          "description": "Dish pricing in INR"
+        },
+        "category": {
+          "type": "string",
+          "description": "Food category partition"
+        },
+        "description": {
+          "type": "string",
+          "description": "Short culinary description of ingredients"
+        },
+        "image": {
+          "type": "string",
+          "description": "URL to premium dish graphic image representation"
+        },
+        "isFeatured": {
+          "type": "boolean",
+          "description": "Whether to highlight in homepage bento cards"
+        },
+        "isAvailable": {
+          "type": "boolean",
+          "description": "Whether the dish is in active stock"
+        }
+      },
+      "required": [
+        "name",
+        "price",
+        "category",
+        "description",
+        "image",
+        "isAvailable"
+      ]
+    },
+    "User": {
+      "title": "User",
+      "description": "Platform registered user information",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "User email address"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User profile name"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of user account creation"
+        }
+      },
+      "required": [
+        "email",
+        "createdAt"
+      ]
+    },
+    "File": {
+      "title": "File",
+      "description": "User uploaded file metadata information",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID reference"
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Uploaded file name"
+        },
+        "fileSize": {
+          "type": "number",
+          "description": "Size of the file in bytes"
+        },
+        "fileType": {
+          "type": "string",
+          "description": "File MIME type representation"
+        },
+        "fileUrl": {
+          "type": "string",
+          "description": "File reference url string"
+        },
+        "uploadedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of the file upload"
+        }
+      },
+      "required": [
+        "userId",
+        "fileName",
+        "fileSize",
+        "fileType",
+        "fileUrl",
+        "uploadedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Collection containing all incoming customer checkout orders"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Collection containing authorized personnel UIDs or email keys"
+    },
+    "/menuItems/{itemId}": {
+      "schema": "MenuItem",
+      "description": "Collection of direct editable menu items"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection containing all registered platform users"
+    },
+    "/files/{fileId}": {
+      "schema": "File",
+      "description": "Collection containing all files uploaded by platform users"
+    }
+  }
+}

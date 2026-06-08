@@ -1,0 +1,145 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- GLOBAL HELPERS ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email != null && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      // Bootstrapped Admin: Allows the provided runtime email address to act as root admin.
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == "unexpectedai29@gmail.com" ||
+        request.auth.token.email == "lazizchickencorners@gmail.com"
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- COLLECTION MATCHES ---
+
+    // MenuItem rules
+    match /menuItems/{itemId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidMenuItem(incoming());
+      allow update: if isAdmin() && isValidMenuItem(incoming());
+      allow delete: if isAdmin();
+    }
+
+    function isValidMenuItem(data) {
+      return data.keys().hasAll(['name', 'price', 'category', 'description', 'image', 'isAvailable', 'isFeatured'])
+        && data.keys().size() == 7
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.price is number && data.price >= 0
+        && data.category is string && data.category.size() > 0 && data.category.size() <= 50
+        && data.description is string && data.description.size() <= 500
+        && data.image is string && data.image.size() <= 1000
+        && data.isAvailable is bool
+        && data.isFeatured is bool;
+    }
+
+    // Admin profiles
+    match /admins/{adminId} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == adminId);
+      allow write: if isAdmin();
+    }
+
+    // Order tracking
+    match /orders/{orderId} {
+      allow create: if isSignedIn() && isValidOrder(incoming()) && incoming().userId == request.auth.uid;
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (
+        // Admin update gate
+        (isAdmin() && isValidOrderUpdate(incoming())) ||
+        // Customer cancel gate: can only mark status as 'rejected' (canceled) if it is 'pending'
+        (!isAdmin() && resource.data.userId == request.auth.uid && resource.data.orderStatus == "pending" &&
+         incoming().diff(existing()).affectedKeys().hasOnly(['orderStatus', 'updatedAt']) &&
+         incoming().orderStatus == "rejected" && incoming().updatedAt is timestamp)
+      );
+      allow delete: if isAdmin();
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['customerName', 'phone', 'items', 'totalPrice', 'orderStatus', 'pickupTime', 'notes', 'createdAt', 'userId', 'updatedAt'])
+        && (data.keys().size() == 10 || (data.keys().size() == 11 && data.get('estimatedPrepTime', null) != null))
+        && data.customerName is string && data.customerName.size() > 0 && data.customerName.size() <= 100
+        && data.phone is string && data.phone.size() >= 3 && data.phone.size() <= 30
+        && data.items is list && data.items.size() > 0 && data.items.size() <= 50
+        && data.totalPrice is number && data.totalPrice >= 0
+        && data.orderStatus in ['pending', 'accepted', 'ready', 'rejected', 'completed']
+        && data.pickupTime is string && data.pickupTime.size() <= 50
+        && data.notes is string && data.notes.size() <= 1000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp
+        && data.userId is string && data.userId.size() <= 128
+        && (data.get('estimatedPrepTime', null) == null || (data.estimatedPrepTime is string && data.estimatedPrepTime.size() <= 50));
+    }
+
+    function isValidOrderUpdate(data) {
+      return data.keys().hasAll(['customerName', 'phone', 'items', 'totalPrice', 'orderStatus', 'pickupTime', 'notes', 'createdAt', 'userId', 'updatedAt'])
+        && (data.keys().size() == 10 || (data.keys().size() == 11 && data.get('estimatedPrepTime', null) != null))
+        && data.customerName is string
+        && data.phone is string
+        && data.items is list
+        && data.totalPrice is number
+        && data.orderStatus in ['pending', 'accepted', 'ready', 'rejected', 'completed']
+        && data.pickupTime is string
+        && data.notes is string
+        && data.userId is string
+        && data.updatedAt is timestamp
+        && (data.get('estimatedPrepTime', null) == null || (data.estimatedPrepTime is string && data.estimatedPrepTime.size() <= 50));
+    }
+
+    // Users profile
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create, update: if isSignedIn() && (request.auth.uid == userId || isAdmin()) && isValidUser(incoming());
+      allow delete: if isAdmin();
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['email'])
+        && data.email is string && data.email.size() > 0 && data.email.size() <= 200
+        && (data.get('displayName', null) == null || (data.displayName is string && data.displayName.size() <= 100))
+        && (data.get('createdAt', null) == null || data.createdAt is timestamp);
+    }
+
+    // User files
+    match /files/{fileId} {
+      allow read, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == incoming().userId && isValidFile(incoming());
+    }
+
+    function isValidFile(data) {
+      return data.keys().hasAll(['userId', 'fileName', 'fileSize', 'fileType', 'fileUrl', 'uploadedAt'])
+        && data.keys().size() == 6
+        && data.userId is string && data.userId.size() <= 128
+        && data.fileName is string && data.fileName.size() <= 255
+        && data.fileSize is number && data.fileSize >= 0
+        && data.fileType is string && data.fileType.size() <= 100
+        && data.fileUrl is string && data.fileUrl.size() <= 2000
+        && data.uploadedAt is timestamp;
+    }
+  }
+}

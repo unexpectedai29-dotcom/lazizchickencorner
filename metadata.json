@@ -1,0 +1,6 @@
+{
+  "name": "Laziz Chicken Corner",
+  "description": "Premium dark-themed pickup ordering system for Laziz Chicken Corner, featuring real-time state synchronization, safe secure Firestore configurations, and custom admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
