@@ -82,7 +82,7 @@ service cloud.firestore {
 
     function isValidOrder(data) {
       return data.keys().hasAll(['customerName', 'phone', 'items', 'totalPrice', 'orderStatus', 'pickupTime', 'notes', 'createdAt', 'userId', 'updatedAt'])
-        && (data.keys().size() == 10 || (data.keys().size() == 11 && data.get('estimatedPrepTime', null) != null))
+        && (data.keys().size() == 10 || (data.keys().size() == 11 && 'estimatedPrepTime' in data))
         && data.customerName is string && data.customerName.size() > 0 && data.customerName.size() <= 100
         && data.phone is string && data.phone.size() >= 3 && data.phone.size() <= 30
         && data.items is list && data.items.size() > 0 && data.items.size() <= 50
@@ -93,12 +93,12 @@ service cloud.firestore {
         && data.createdAt is timestamp
         && data.updatedAt is timestamp
         && data.userId is string && data.userId.size() <= 128
-        && (data.get('estimatedPrepTime', null) == null || (data.estimatedPrepTime is string && data.estimatedPrepTime.size() <= 50));
+        && (!('estimatedPrepTime' in data) || (data.estimatedPrepTime is string && data.estimatedPrepTime.size() <= 50));
     }
 
     function isValidOrderUpdate(data) {
       return data.keys().hasAll(['customerName', 'phone', 'items', 'totalPrice', 'orderStatus', 'pickupTime', 'notes', 'createdAt', 'userId', 'updatedAt'])
-        && (data.keys().size() == 10 || (data.keys().size() == 11 && data.get('estimatedPrepTime', null) != null))
+        && (data.keys().size() == 10 || (data.keys().size() == 11 && 'estimatedPrepTime' in data))
         && data.customerName is string
         && data.phone is string
         && data.items is list
@@ -108,7 +108,7 @@ service cloud.firestore {
         && data.notes is string
         && data.userId is string
         && data.updatedAt is timestamp
-        && (data.get('estimatedPrepTime', null) == null || (data.estimatedPrepTime is string && data.estimatedPrepTime.size() <= 50));
+        && (!('estimatedPrepTime' in data) || (data.estimatedPrepTime is string && data.estimatedPrepTime.size() <= 50));
     }
 
     // Users profile
@@ -119,10 +119,9 @@ service cloud.firestore {
     }
 
     function isValidUser(data) {
-      return data.keys().hasAll(['email'])
-        && data.email is string && data.email.size() > 0 && data.email.size() <= 200
-        && (data.get('displayName', null) == null || (data.displayName is string && data.displayName.size() <= 100))
-        && (data.get('createdAt', null) == null || data.createdAt is timestamp);
+      return data.email is string && data.email.size() > 0 && data.email.size() <= 200
+        && (!('displayName' in data) || data.displayName == null || (data.displayName is string && data.displayName.size() <= 100))
+        && (!('createdAt' in data) || data.createdAt == null || data.createdAt is timestamp);
     }
 
     // User files
