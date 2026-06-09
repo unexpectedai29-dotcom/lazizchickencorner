@@ -917,6 +917,129 @@ export const dbService = {
     }
   },
 
+  // Subscribe to store hours settings
+  subscribeStoreHours(callback: (hours: { openingTime: string, closingTime: string, text: string } | null) => void): () => void {
+    if (!isFirebaseSandbox) {
+      const docRef = doc(realDb, 'settings', 'store_hours');
+      
+      const processSnapshot = (docSnap: any) => {
+        if (docSnap.exists()) {
+          callback(docSnap.data() as any);
+        } else {
+          // Return default initial hours if settings not yet created
+          callback({
+            openingTime: '11:30 AM',
+            closingTime: '11:00 PM',
+            text: 'Daily: 11:30 AM to 11:00 PM'
+          });
+        }
+      };
+
+      // 1. Snapshot dynamic syncing
+      let unsubscribeSnapshot: () => void = () => {};
+      try {
+        unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
+          processSnapshot(docSnap);
+        }, (err) => {
+          console.warn('Silent store hours doc fetch error:', err);
+        });
+      } catch (e) {
+        console.error('Failed to attach store hours onSnapshot listener:', e);
+      }
+
+      // 2. Active background fallback polling (every 8 seconds)
+      const fetchManual = async () => {
+        try {
+          const docSnap = await getDoc(docRef);
+          processSnapshot(docSnap);
+        } catch (e) {
+          console.warn('Quiet store hours background query omitted:', e);
+        }
+      };
+
+      const pollInterval = setInterval(fetchManual, 8000);
+
+      const handleLocalHoursChange = () => {
+        fetchManual();
+      };
+      window.addEventListener('hours-db-change', handleLocalHoursChange);
+
+      return () => {
+        unsubscribeSnapshot();
+        clearInterval(pollInterval);
+        window.removeEventListener('hours-db-change', handleLocalHoursChange);
+      };
+    } else {
+      // Sandbox Mode Store Hours updates
+      const runGet = () => {
+        const stored = localStorage.getItem('laziz_sandbox_store_hours');
+        if (stored) {
+          try {
+            callback(JSON.parse(stored));
+          } catch (e) {
+            callback({
+              openingTime: '11:30 AM',
+              closingTime: '11:00 PM',
+              text: 'Daily: 11:30 AM to 11:00 PM'
+            });
+          }
+        } else {
+          callback({
+            openingTime: '11:30 AM',
+            closingTime: '11:00 PM',
+            text: 'Daily: 11:30 AM to 11:00 PM'
+          });
+        }
+      };
+
+      runGet();
+
+      const handler = () => {
+        runGet();
+      };
+      window.addEventListener('sandbox-hours-update', handler);
+
+      const interval = setInterval(runGet, 4000);
+
+      return () => {
+        window.removeEventListener('sandbox-hours-update', handler);
+        clearInterval(interval);
+      };
+    }
+  },
+
+  // Update store hours settings
+  async updateStoreHours(openingTime: string, closingTime: string, text: string, updatedBy: string): Promise<void> {
+    if (!isFirebaseSandbox) {
+      const path = 'settings/store_hours';
+      try {
+        const docRef = doc(realDb, 'settings', 'store_hours');
+        const payload = {
+          openingTime,
+          closingTime,
+          text,
+          updatedBy,
+          updatedAt: serverTimestamp()
+        };
+        await setDoc(docRef, payload);
+        window.dispatchEvent(new CustomEvent('hours-db-change'));
+      } catch (err) {
+        handleFirestoreError(err, OperationType.WRITE, path);
+      }
+    } else {
+      // Sandbox update overrides
+      const payload = {
+        openingTime,
+        closingTime,
+        text,
+        updatedBy,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem('laziz_sandbox_store_hours', JSON.stringify(payload));
+      window.dispatchEvent(new CustomEvent('sandbox-hours-update'));
+    }
+  },
+
   // Ensure user profile document exists in Firestore or local storage simulation
   async ensureUserProfile(uid: string, email: string, displayName?: string | null): Promise<void> {
     if (!isFirebaseSandbox) {

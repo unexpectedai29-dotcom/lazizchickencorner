@@ -4,6 +4,7 @@ import { Order, OrderStatus } from '../types';
 import LCCLogo from './LCCLogo';
 import { showToast } from '../lib/toast';
 import { INITIAL_MENU_ITEMS } from '../data';
+import { useAuth } from '../providers/AuthProvider';
 import { 
   Flame, 
   Trash2, 
@@ -25,11 +26,18 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ onClose }: AdminDashboardProps) {
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'accepted' | 'ready' | 'completed' | 'rejected' | 'inventory'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'accepted' | 'ready' | 'completed' | 'rejected' | 'inventory' | 'clock'>('all');
   const [statusTimer, setStatusTimer] = useState<any>(null);
   const [hoveredPointIdx, setHoveredPointIdx] = useState<number | null>(null);
+
+  // Store Hours editable states
+  const [openingTime, setOpeningTime] = useState('11:30 AM');
+  const [closingTime, setClosingTime] = useState('11:00 PM');
+  const [text, setText] = useState('Daily: 11:30 AM to 11:00 PM');
+  const [isUpdatingHours, setIsUpdatingHours] = useState(false);
 
   // Dynamic menu items availability map from database reactive listens
   const [availabilityMap, setAvailabilityMap] = useState<Record<string, boolean>>({});
@@ -194,6 +202,18 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   useEffect(() => {
     const unsubscribe = dbService.subscribeMenuItems((map) => {
       setAvailabilityMap(map);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Synchronize dynamic store hours changes reactively
+  useEffect(() => {
+    const unsubscribe = dbService.subscribeStoreHours((data) => {
+      if (data) {
+        setOpeningTime(data.openingTime || '11:30 AM');
+        setClosingTime(data.closingTime || '11:00 PM');
+        setText(data.text || 'Daily: 11:30 AM to 11:00 PM');
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -599,9 +619,10 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
 
         {/* Tab Selector Filters */}
         <div className="flex items-center gap-2 border-b border-white/5 pb-1 overflow-x-auto no-scrollbar select-none">
-          {(['all', 'pending', 'accepted', 'ready', 'completed', 'rejected', 'inventory'] as const).map((tab) => {
+          {(['all', 'pending', 'accepted', 'ready', 'completed', 'rejected', 'inventory', 'clock'] as const).map((tab) => {
             const count = 
               tab === 'inventory' ? INITIAL_MENU_ITEMS.length :
+              tab === 'clock' ? null :
               tab === 'all' ? orders.length :
               tab === 'pending' ? pendingOrders.length :
               tab === 'accepted' ? acceptedOrders.length :
@@ -619,7 +640,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                     : 'border-transparent text-flame-gray hover:text-white'
                 }`}
               >
-                {tab === 'inventory' ? '🍽️ Menu Inventory' : tab} ({count})
+                {tab === 'inventory' ? '🍽️ Menu Inventory' : tab === 'clock' ? '⏰ Operational Clock' : tab} {count !== null ? `(${count})` : ''}
               </button>
             );
           })}
@@ -675,6 +696,138 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                 </div>
               );
             })}
+          </div>
+        ) : activeTab === 'clock' ? (
+          /* Operational Clock Settings Panel */
+          <div className="max-w-2xl bg-flame-card border border-white/5 p-8 rounded-2xl font-sans relative overflow-hidden shadow-xl shadow-black/40">
+            {/* Ambient gold glow highlight */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-flame-yellow/5 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div className="flex gap-4 items-start mb-6">
+              <div className="p-3 bg-flame-yellow/10 border border-flame-yellow/20 rounded-xl">
+                <Clock className="w-6 h-6 text-flame-yellow" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-display text-xl text-white uppercase tracking-wider font-extrabold">Shop Operational Clock</h3>
+                <p className="text-xs text-flame-gray mt-1 leading-relaxed">
+                  As administrator, you have full real-time control over modifying the opening and closing hours shown in the cart drawer and contacts section on the front homepage of Laziz Chicken Corner.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setIsUpdatingHours(true);
+              try {
+                const adminUid = user?.uid || 'admin_manual';
+                await dbService.updateStoreHours(openingTime, closingTime, text, adminUid);
+                showToast("Store operational hours updated successfully!", "success");
+              } catch (err) {
+                console.error(err);
+                showToast("Failed to save operational hours to database.", "error");
+              } finally {
+                setIsUpdatingHours(false);
+              }
+            }} className="space-y-6 mt-4 relative z-10">
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-[10px] text-flame-gray font-mono uppercase tracking-widest mb-1.5 font-bold">
+                    Opening Time (e.g. 11:30 AM)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={openingTime}
+                    onChange={(e) => setOpeningTime(e.target.value)}
+                    placeholder="e.g. 11:30 AM"
+                    className="w-full bg-zinc-900 border border-white/10 text-white placeholder-zinc-600 px-4 py-3 rounded-lg text-xs focus:outline-none focus:border-flame-orange font-mono font-medium"
+                    id="setting-opening-time"
+                  />
+                  <span className="text-[10px] text-zinc-500 mt-1 block">Specify the opening hour with standard meridiem suffix of the shop floor.</span>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] text-flame-gray font-mono uppercase tracking-widest mb-1.5 font-bold">
+                    Closing Time (e.g. 11:00 PM)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={closingTime}
+                    onChange={(e) => setClosingTime(e.target.value)}
+                    placeholder="e.g. 11:00 PM"
+                    className="w-full bg-zinc-900 border border-white/10 text-white placeholder-zinc-600 px-4 py-3 rounded-lg text-xs focus:outline-none focus:border-flame-orange font-mono font-medium"
+                    id="setting-closing-time"
+                  />
+                  <span className="text-[10px] text-zinc-500 mt-1 block">Specify the shutdown closing hour of pressure cookers.</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-flame-gray font-mono uppercase tracking-widest mb-1.5 font-bold">
+                  Human-Descriptive Operating Hours Text (e.g. Daily: 11:30 AM to 11:00 PM)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="e.g. Daily: 11:30 AM to 11:00 PM"
+                  className="w-full bg-zinc-900 border border-white/10 text-white placeholder-zinc-650 px-4 py-3 rounded-lg text-xs focus:outline-none focus:border-flame-orange font-sans font-medium"
+                  id="setting-hours-text"
+                />
+                <span className="text-[10px] text-zinc-500 mt-1 block">Describe the weekly layout clearly. Shown in public Contact card block.</span>
+              </div>
+
+              {/* Presets and Helpers Quick Settings */}
+              <div className="bg-zinc-950 border border-white/5 p-4 rounded-xl space-y-2">
+                <span className="text-[9px] text-flame-yellow font-mono uppercase tracking-widest font-black block">Quick Hours Presets</span>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "Standard street schedule (11:30 AM - 11 PM)", o: "11:30 AM", c: "11:00 PM", desc: "Daily: 11:30 AM to 11:00 PM" },
+                    { label: "Extended Night Shift (11:30 AM - 11:30 PM)", o: "11:30 AM", c: "11:30 PM", desc: "Daily: 11:30 AM to 11:30 PM" },
+                    { label: "Midnight Munchies (12:00 PM - 12:00 AM)", o: "12:00 PM", c: "12:00 AM", desc: "Daily: 12:00 PM to 12:00 AM" },
+                  ].map((preset, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setOpeningTime(preset.o);
+                        setClosingTime(preset.c);
+                        setText(preset.desc);
+                        showToast("Preset values filled into editor fields", "info");
+                      }}
+                      className="text-[10px] bg-zinc-900 hover:bg-zinc-800 text-stone-300 px-2.5 py-1.5 rounded border border-white/5 hover:border-flame-orange/20 transition-all font-sans cursor-pointer whitespace-nowrap"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-white/5 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isUpdatingHours}
+                  className="bg-flame-orange hover:bg-flame-deep font-accent text-xs uppercase tracking-wider text-white font-extrabold px-6 py-3 rounded-lg shadow-md shadow-flame-orange/20 transition-all hover:scale-102 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  id="btn-save-store-hours"
+                >
+                  {isUpdatingHours ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      Saving operational clock...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Save Operational Clock
+                    </>
+                  )}
+                </button>
+              </div>
+
+            </form>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="text-center py-20 bg-flame-card rounded-lg border border-white/10 flex flex-col items-center">

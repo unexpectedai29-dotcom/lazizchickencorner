@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ShoppingBag, Trash2, ArrowRight, ShieldCheck, Mail, CalendarClock, PhoneOutgoing, UserPlus, AlertTriangle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { dbService, isFirebaseSandbox, authActions, enableSandboxBypass } from '../firebase';
@@ -35,6 +35,20 @@ export default function CartDrawer({
   const [allergyNotes, setAllergyNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const [openingTime, setOpeningTime] = useState('11:30 AM');
+  const [closingTime, setClosingTime] = useState('11:00 PM');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const unsubscribe = dbService.subscribeStoreHours((data) => {
+      if (data) {
+        setOpeningTime(data.openingTime || '11:30 AM');
+        setClosingTime(data.closingTime || '11:00 PM');
+      }
+    });
+    return unsubscribe;
+  }, [isOpen]);
 
   const totalPrice = cartItems.reduce((acc, curr) => acc + curr.price * curr.quantity, 0);
 
@@ -282,7 +296,7 @@ export default function CartDrawer({
                   <div>
                     <label className="block text-[10px] text-flame-gray font-mono uppercase tracking-widest mb-1.5 font-bold flex items-center justify-between">
                       <span>Requested Pickup Time *</span>
-                      <span className="text-[9px] text-flame-yellow uppercase lowercase-none">Store hours: 11:30 AM - 11 PM</span>
+                      <span className="text-[9px] text-flame-yellow uppercase lowercase-none">Store hours: {openingTime} - {closingTime}</span>
                     </label>
                     <input
                       type="text"

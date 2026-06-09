@@ -1,7 +1,20 @@
+import { useState, useEffect } from 'react';
 import { Phone, MapPin, Clock, ShieldCheck, Flame } from 'lucide-react';
 import { RESTAURANT_INFO } from '../data';
+import { dbService } from '../firebase';
 
 export default function ContactSection() {
+  const [storeHoursText, setStoreHoursText] = useState(RESTAURANT_INFO.hours);
+
+  useEffect(() => {
+    const unsubscribe = dbService.subscribeStoreHours((data) => {
+      if (data && data.text) {
+        setStoreHoursText(data.text);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
   return (
     <section id="contact" className="py-20 px-4 md:px-8 bg-flame-black relative overflow-hidden">
       
@@ -79,7 +92,7 @@ export default function ContactSection() {
                   Our pressure fryers and flame grills operate daily on standard street schedules:
                 </p>
                 <p className="text-base text-white font-extrabold font-accent tracking-widest mt-2 bg-white/5 border border-white/5 inline-block py-1.5 px-3 rounded-lg uppercase">
-                  {RESTAURANT_INFO.hours}
+                  {storeHoursText}
                 </p>
               </div>
             </div>

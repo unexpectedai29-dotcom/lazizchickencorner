@@ -176,9 +176,48 @@
         "fileUrl",
         "uploadedAt"
       ]
+    },
+    "StoreSettings": {
+      "title": "StoreSettings",
+      "description": "Store operational schedule and timing settings",
+      "type": "object",
+      "properties": {
+        "openingTime": {
+          "type": "string",
+          "description": "Store daily opening hour"
+        },
+        "closingTime": {
+          "type": "string",
+          "description": "Store daily closing hour"
+        },
+        "text": {
+          "type": "string",
+          "description": "Human readable operating hours text"
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "The UID of the admin user who changed the settings"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when modified"
+        }
+      },
+      "required": [
+        "openingTime",
+        "closingTime",
+        "text",
+        "updatedBy",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
+    "/settings/{settingId}": {
+      "schema": "StoreSettings",
+      "description": "General settings collection, notably used for store_hours"
+    },
     "/orders/{orderId}": {
       "schema": "Order",
       "description": "Collection containing all incoming customer checkout orders"

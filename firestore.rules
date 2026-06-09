@@ -59,6 +59,23 @@ service cloud.firestore {
         && data.isFeatured is bool;
     }
 
+    // Settings rules
+    match /settings/{settingId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidSetting(incoming());
+      allow delete: if isAdmin();
+    }
+
+    function isValidSetting(data) {
+      return data.keys().hasAll(['openingTime', 'closingTime', 'text', 'updatedBy', 'updatedAt'])
+        && data.keys().size() == 5
+        && data.openingTime is string && data.openingTime.size() <= 15
+        && data.closingTime is string && data.closingTime.size() <= 15
+        && data.text is string && data.text.size() <= 100
+        && data.updatedBy is string && data.updatedBy.size() <= 128
+        && data.updatedAt is timestamp;
+    }
+
     // Admin profiles
     match /admins/{adminId} {
       allow read: if isAdmin() || (isSignedIn() && request.auth.uid == adminId);
