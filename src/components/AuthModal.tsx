@@ -585,25 +585,8 @@ export default function AuthModal({
         {errorMsg && (
           <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg flex items-start gap-2 text-xs text-left">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <div className="flex-1 space-y-1.5">
+            <div className="flex-1 space-y-1.5 font-sans leading-normal">
               <span className="leading-snug block">{errorMsg}</span>
-              {(errorMsg.toLowerCase().includes('network') || errorMsg.toLowerCase().includes('internet') || errorMsg.toLowerCase().includes('failed to fetch') || errorMsg.toLowerCase().includes('fetch')) && (
-                <div className="pt-1.5 border-t border-red-500/20 mt-1.5">
-                  <p className="text-[9px] text-zinc-400 mb-1">
-                    Firebase connection was blocked or unreachable. We recommend running in offline simulation mode instead.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      localStorage.setItem('laziz_force_sandbox', 'true');
-                      window.location.reload();
-                    }}
-                    className="bg-flame-orange hover:bg-flame-deep text-black font-mono font-bold text-[9px] uppercase tracking-wider px-2.5 py-1 rounded transition-colors cursor-pointer"
-                  >
-                    🔌 Enable Local Sandbox Bypass Offline
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -855,19 +838,7 @@ export default function AuthModal({
           <strong>Google Account</strong>
         </button>
 
-        {isFirebaseSandbox && (
-          <div className="mt-4 flex flex-col items-center justify-center gap-1">
-            <button
-              onClick={() => handleGoogleLogin(true)}
-              className="w-full bg-flame-orange/10 hover:bg-flame-orange/20 border border-flame-orange/30 text-flame-yellow font-mono text-[9px] uppercase tracking-widest py-1.5 rounded-lg cursor-pointer"
-            >
-              👑 Direct Whitelisted Admin Link (Sandbox Ease)
-            </button>
-            <p className="text-[8px] text-zinc-600 text-center uppercase mt-1 leading-snug font-mono">
-              Sandbox mode is active. You can type any information to mock authenticate!
-            </p>
-          </div>
-        )}
+
           </>
         )}
 

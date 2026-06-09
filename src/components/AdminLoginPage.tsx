@@ -128,20 +128,7 @@ export default function AdminLoginPage() {
                         <li>
                           <strong>Is Email/Password Login Method enabled?</strong> You must enable <em>Email/Password</em> provider in your <em>Firebase Console &rarr; Authentication &rarr; Sign-in method</em>. If disabled, Firebase rejects registrations and logins.
                         </li>
-                        <li>
-                          <strong>Bypass / Test offline:</strong> If you don't have Firebase access or just want to explore, switch to Sandbox Mode to log in instantly.
-                        </li>
                       </ul>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          localStorage.setItem('laziz_force_sandbox', 'true');
-                          window.location.reload();
-                        }}
-                        className="bg-flame-orange hover:bg-flame-deep text-black font-mono font-bold text-[9px] uppercase tracking-wider px-2.5 py-1.5 rounded transition-all cursor-pointer mt-1"
-                      >
-                        🔌 Switch to Sandbox Mode (Instantly Log In)
-                      </button>
                     </div>
                   )}
                 </div>
@@ -232,35 +219,7 @@ export default function AdminLoginPage() {
               </button>
             </div>
 
-            {/* Sandbox tip */}
-            {isFirebaseSandbox && (
-              <div className="mt-5 p-3.5 bg-flame-orange/5 border border-flame-orange/15 rounded-xl text-center font-sans">
-                <p className="text-[10px] text-flame-yellow font-mono uppercase tracking-wider font-bold">
-                  Demo Sandbox Guide
-                </p>
-                <p className="text-[11px] text-flame-gray mt-1 leading-relaxed">
-                  Use <strong className="text-white font-mono break-all">lazizchickencorners@gmail.com</strong> with security key <strong className="text-white font-mono">lazizchicken</strong> to log in.
-                </p>
-              </div>
-            )}
 
-            {/* Database Mode Switcher link */}
-            <div className="mt-5 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  if (isFirebaseSandbox) {
-                    localStorage.removeItem('laziz_force_sandbox');
-                  } else {
-                    localStorage.setItem('laziz_force_sandbox', 'true');
-                  }
-                  window.location.reload();
-                }}
-                className="text-[10px] text-zinc-500 hover:text-flame-orange font-mono uppercase tracking-wider transition-colors cursor-pointer"
-              >
-                {isFirebaseSandbox ? "🔌 Switch to Real Firebase Live" : "🛠️ Play with Sandbox local DB simulation"}
-              </button>
-            </div>
 
             {/* Meta help links */}
             <div className="mt-8 pt-6 border-t border-white/5 text-center flex justify-between items-center text-[10px] uppercase font-mono text-flame-gray">

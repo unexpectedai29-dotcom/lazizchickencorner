@@ -58,10 +58,10 @@ if (!isPlaceholder) {
 }
 
 // Allow force-enabling sandbox on connection or credential auth errors (like unauthorized-domain)
-export const isFirebaseSandbox = isPlaceholder || localStorage.getItem('laziz_force_sandbox') === 'true';
+export const isFirebaseSandbox = false;
 
 export function enableSandboxBypass() {
-  localStorage.setItem('laziz_force_sandbox', 'true');
+  localStorage.removeItem('laziz_force_sandbox');
   window.location.reload();
 }
 

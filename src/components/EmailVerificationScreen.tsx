@@ -44,25 +44,6 @@ export default function EmailVerificationScreen({
         >
           <span>Return & Log In</span>
         </button>
-
-        {isSandbox && onSimulateVerify && (
-          <div className="p-3 bg-flame-orange/5 border border-flame-orange/20 rounded-xl space-y-2 mt-4 text-center">
-            <span className="block font-mono text-[9px] text-flame-yellow uppercase tracking-widest font-bold">
-              🛠️ Sandbox Simulation Tool
-            </span>
-            <p className="text-[10px] text-zinc-500 font-sans leading-normal">
-              In sandbox local storage mode, mock verification is required to authorize the email.
-            </p>
-            <button
-              onClick={onSimulateVerify}
-              type="button"
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-mono font-black text-[10px] uppercase py-1.5 rounded transition-colors flex items-center justify-center gap-1 cursor-pointer"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Simulate Email Verification</span>
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

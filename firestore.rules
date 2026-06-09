@@ -120,8 +120,8 @@ service cloud.firestore {
 
     function isValidUser(data) {
       return data.email is string && data.email.size() > 0 && data.email.size() <= 200
-        && (!('displayName' in data) || data.displayName == null || (data.displayName is string && data.displayName.size() <= 100))
-        && (!('createdAt' in data) || data.createdAt == null || data.createdAt is timestamp);
+        && (!('displayName' in data) || data.displayName == null || data.displayName is string)
+        && (!('createdAt' in data) || data.createdAt == null || data.createdAt is timestamp || data.createdAt == request.time);
     }
 
     // User files

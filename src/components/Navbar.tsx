@@ -325,16 +325,10 @@ export default function Navbar({
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={enableSandboxBypass}
-                className="flex-1 bg-flame-orange hover:bg-flame-deep text-black font-display font-bold text-sm md:text-base px-4 py-2.5 rounded transition-transform duration-150 active:scale-95 text-center cursor-pointer uppercase tracking-wider"
-              >
-                Use Local Demo Sandbox Bypass
-              </button>
+            <div className="mt-6">
               <button
                 onClick={() => setShowDomainError(false)}
-                className="border border-white/10 hover:bg-white/5 text-xs text-flame-gray hover:text-white px-4 py-2.5 rounded transition-colors uppercase tracking-wider font-accent cursor-pointer"
+                className="w-full bg-flame-orange hover:bg-flame-deep text-black font-display font-bold text-sm md:text-base px-4 py-2.5 rounded transition-transform duration-150 active:scale-95 text-center cursor-pointer uppercase tracking-wider"
               >
                 Close & Retry
               </button>
@@ -381,29 +375,15 @@ export default function Navbar({
                 <li>The sign-in window was closed before completing auth.</li>
               </ul>
 
-              <div className="bg-flame-orange/5 border border-flame-orange/20 rounded-xl p-4 mt-2">
-                <p className="text-xs text-flame-yellow leading-relaxed">
-                  <strong>💡 Recommended:</strong> If you are testing this in the AI Studio preview environment, click <strong>Use Local Demo Sandbox Bypass</strong> below. It launches a fully functional sandbox session instantly without requiring physical external redirects!
-                </p>
-              </div>
             </div>
 
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => {
-                  setShowPopupClosedError(false);
-                  enableSandboxBypass();
-                }}
-                className="flex-1 bg-flame-orange hover:bg-flame-deep text-black font-display font-bold text-sm md:text-base px-4 py-2.5 rounded transition-transform duration-150 active:scale-95 text-center cursor-pointer uppercase tracking-wider"
-              >
-                Use Local Demo Sandbox Bypass
-              </button>
+            <div className="mt-6">
               <button
                 onClick={() => {
                   setShowPopupClosedError(false);
                   onOpenAuth('login');
                 }}
-                className="border border-white/10 hover:bg-white/5 text-xs text-flame-gray hover:text-white px-4 py-2.5 rounded transition-colors uppercase tracking-wider font-accent cursor-pointer text-center"
+                className="w-full bg-flame-orange hover:bg-flame-deep text-black font-display font-bold text-sm md:text-base px-4 py-2.5 rounded transition-transform duration-150 active:scale-95 text-center cursor-pointer uppercase tracking-wider"
               >
                 Close & Retry
               </button>
