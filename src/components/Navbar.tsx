@@ -115,15 +115,7 @@ export default function Navbar({
         </div>
 
         {/* Action Controls & Call Line */}
-        <div className="flex items-center gap-3">
-          {/* Quick Mobile Call Button Shortcut */}
-          <a 
-            href="tel:9926715071" 
-            className="md:hidden p-2 bg-gradient-to-r from-flame-orange to-amber-500 hover:brightness-110 text-black text-xs font-bold rounded-full cursor-pointer hover:scale-105 duration-200 shrink-0"
-            title="Call Laziz Chicken Corner"
-          >
-            <Phone className="w-4 h-4 fill-black" />
-          </a>
+        <div className="flex items-center gap-1.5 sm:gap-3">
 
           {/* Desktop Call Hotline */}
           <div className="hidden md:flex items-center gap-2 bg-black/45 border border-white/5 py-1 px-3.5 rounded-xl mr-1">
@@ -162,28 +154,27 @@ export default function Navbar({
           {/* Admin Portal entrypoint - always visible to allow access */}
           <button
             onClick={() => { window.location.hash = '#/admin/login'; }}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-accent uppercase tracking-wider transition-all cursor-pointer border ${
+            className={`flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded text-[10px] sm:text-xs font-accent uppercase tracking-wider transition-all cursor-pointer border ${
               isAdmin 
                 ? 'bg-flame-orange/20 border-flame-orange/60 text-flame-orange hover:bg-flame-orange hover:text-white' 
                 : 'bg-zinc-800/60 hover:bg-zinc-700/80 text-flame-gray hover:text-white border-white/5'
             }`}
           >
-            <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Admin Portal</span>
+            <ShieldAlert className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <span className="hidden sm:inline">Admin Portal</span>
+            <span className="sm:hidden">Admin</span>
           </button>
 
           {/* User Order History Toggle */}
           {currentUser && (
             <button
               onClick={onOpenOrders}
-              className="p-2 text-flame-gray hover:text-white hover:bg-white/5 rounded-full transition-colors relative"
+              className="p-1.5 text-flame-gray hover:text-white hover:bg-white/5 rounded-full transition-colors relative"
               title="My Orders"
             >
-              <ClipboardList className="w-5.5 h-5.5" />
+              <ClipboardList className="w-5 h-5 sm:w-5.5 sm:h-5.5" />
             </button>
           )}
-
-
 
           {/* Shopping Cart Button */}
           <button
@@ -191,9 +182,9 @@ export default function Navbar({
             className="p-2 bg-flame-orange hover:bg-flame-deep text-white rounded-full transition-colors relative flex items-center justify-center cursor-pointer"
             title="Open Cart"
           >
-            <ShoppingCart className="w-5 h-5" />
+            <ShoppingCart className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-flame-yellow text-flame-black font-mono font-bold text-xs w-5 h-5 flex items-center justify-center rounded-full border-2 border-flame-black">
+              <span className="absolute -top-1 -right-1 bg-flame-yellow text-flame-black font-mono font-bold text-[9px] sm:text-xs w-4.5 h-4.5 sm:w-5 sm:h-5 flex items-center justify-center rounded-full border-2 border-flame-black">
                 {cartCount}
               </span>
             )}
@@ -205,12 +196,12 @@ export default function Navbar({
             className="lg:hidden p-2 text-flame-gray hover:text-white hover:bg-white/5 rounded-full transition-colors cursor-pointer flex items-center justify-center shrink-0 border border-white/5"
             title="Toggle Menu"
           >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMobileMenuOpen ? <X className="w-4.5 h-4.5" /> : <Menu className="w-4.5 h-4.5" />}
           </button>
 
           {/* Authentication State */}
           {currentUser ? (
-            <div className="flex items-center gap-2 border-l border-white/10 pl-3">
+            <div className="flex items-center gap-1.5 border-l border-white/10 pl-2 sm:pl-3">
               <div className="hidden md:flex flex-col text-right">
                 <span className="text-xs font-medium text-white max-w-[120px] truncate">
                   {currentUser.displayName || 'Guest User'}
@@ -221,25 +212,26 @@ export default function Navbar({
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 text-white/60 hover:text-white hover:bg-white/5 rounded-full transition-colors cursor-pointer"
+                className="p-1.5 text-white/60 hover:text-white hover:bg-white/5 rounded-full transition-colors cursor-pointer"
                 title="Logout"
               >
-                <LogOut className="w-4.5 h-4.5" />
+                <LogOut className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-1 border-l border-white/10 pl-2">
+            <div className="flex items-center gap-1 border-l border-white/10 pl-1.5 sm:pl-2">
               <button
                 onClick={() => onOpenAuth('login')}
-                className="bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-accent uppercase tracking-wide px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="bg-zinc-800 hover:bg-zinc-700 text-white text-[10px] sm:text-xs font-accent uppercase tracking-wide px-2 py-1.5 rounded transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <User className="w-3.5 h-3.5 text-flame-orange" />
-                <span>Login / Register</span>
+                <span className="hidden sm:inline">Login / Register</span>
+                <span className="sm:hidden">Login</span>
               </button>
 
               {/* Developer quick login for sandbox ease */}
               {isFirebaseSandbox && (
-                <div className="flex items-center gap-1 border-l border-white/5 pl-2">
+                <div className="hidden md:flex items-center gap-1 border-l border-white/5 pl-2">
                   <button
                     onClick={handleDevAdminLogin}
                     className="bg-flame-deep/20 hover:bg-flame-deep/40 text-flame-yellow text-[8px] font-mono tracking-widest px-2 py-1.5 rounded-md border border-flame-deep/40 cursor-pointer"
@@ -249,7 +241,7 @@ export default function Navbar({
                   </button>
                   <button
                     onClick={handleDevFilesAdminLogin}
-                    className="bg-[#121b22] hover:bg-[#1c2c39] text-[#00E5FF] text-[8px] font-mono tracking-widest px-2 py-1.5 rounded-md border border-blue-500/20 cursor-pointer"
+                    className="bg-flame-deep/20 hover:bg-[#1c2c39] text-[#00E5FF] text-[8px] font-mono tracking-widest px-2 py-1.5 rounded-md border border-blue-500/20 cursor-pointer"
                     title="Dev Auto-Login as Files Admin PqUn9o3KQAg0bUWQ78IsjedZPxK2"
                   >
                     FILES-ADM
